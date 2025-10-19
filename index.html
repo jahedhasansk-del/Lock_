@@ -23,7 +23,6 @@
             position: relative;
         }
 
-        /* Dynamic Background */
         .stars {
             position: fixed;
             inset: 0;
@@ -44,7 +43,6 @@
             50% { opacity: 1; }
         }
 
-        /* Glow effect */
         .glow-1, .glow-2 {
             position: fixed;
             border-radius: 50%;
@@ -81,7 +79,6 @@
             50% { transform: translate(-50px, -50px); }
         }
 
-        /* Main container */
         .container {
             position: relative;
             z-index: 10;
@@ -90,7 +87,6 @@
             padding: 20px;
         }
 
-        /* Main card */
         .main-card {
             background: rgba(10, 10, 20, 0.7);
             border: 2px solid;
@@ -135,7 +131,6 @@
             75% { transform: translateX(10px); }
         }
 
-        /* Header section */
         .header-section {
             text-align: center;
             margin-bottom: 50px;
@@ -180,7 +175,6 @@
             opacity: 0.9;
         }
 
-        /* Input section */
         .input-section {
             margin-bottom: 30px;
         }
@@ -231,7 +225,6 @@
             75% { transform: translateX(5px); }
         }
 
-        /* Button */
         .unlock-btn {
             width: 100%;
             padding: 16px;
@@ -279,7 +272,6 @@
             box-shadow: none;
         }
 
-        /* Status messages */
         .status-area {
             margin-top: 25px;
             text-align: center;
@@ -312,7 +304,6 @@
             50% { opacity: 0.4; }
         }
 
-        /* Success overlay */
         .success-overlay {
             position: fixed;
             inset: 0;
@@ -411,7 +402,6 @@
             }
         }
 
-        /* Responsive */
         @media (max-width: 600px) {
             .main-card {
                 padding: 40px 25px;
@@ -442,7 +432,7 @@
             <div class="header-section">
                 <div class="lock-animation" id="lockIcon">🔐</div>
                 <h1 class="title">CIPHER</h1>
-                <p class="subtitle">Security Access Control</p>
+                <p class="subtitle">Secure Access Gateway</p>
             </div>
 
             <div class="input-section">
@@ -462,30 +452,31 @@
         <div class="success-content">
             <div class="success-icon">✓</div>
             <div class="success-title">ACCESS GRANTED</div>
-            <div class="success-subtitle">Maximum Clearance Level</div>
+            <div class="success-subtitle" id="screenName">Redirecting...</div>
             <div class="progress-container">
                 <div class="progress-bar"></div>
             </div>
-            <div class="success-text">Initializing secure connection...</div>
+            <div class="success-text" id="successMsg">Initializing secure connection...</div>
         </div>
     </div>
 
     <script>
-        // Configuration
         const CONFIG = {
-            PASSWORD: 'cipher123',
+            PASSWORDS: {
+                '202510': { screen: 2, name: 'Screen 2', icon: '📱' },
+                '202530': { screen: 3, name: 'Screen 3', icon: '🖥️' }
+            },
             MAX_ATTEMPTS: 5,
             LOCKDOWN_TIME: 30
         };
 
-        // State
         const state = {
             attempts: 0,
             isLocked: false,
-            lockdownTimer: 0
+            lockdownTimer: 0,
+            currentScreen: null
         };
 
-        // DOM Elements
         const els = {
             input: document.getElementById('keyInput'),
             unlockBtn: document.getElementById('unlockBtn'),
@@ -493,10 +484,11 @@
             lockIcon: document.getElementById('lockIcon'),
             statusText: document.getElementById('statusText'),
             successOverlay: document.getElementById('successOverlay'),
+            screenName: document.getElementById('screenName'),
+            successMsg: document.getElementById('successMsg'),
             starsContainer: document.getElementById('starsContainer')
         };
 
-        // Create stars
         function createStars() {
             for (let i = 0; i < 100; i++) {
                 const star = document.createElement('div');
@@ -508,17 +500,6 @@
             }
         }
 
-        // Hash function
-        function hashPassword(pwd) {
-            let hash = 0;
-            for (let i = 0; i < pwd.length; i++) {
-                hash = ((hash << 5) - hash) + pwd.charCodeAt(i);
-                hash = hash & hash;
-            }
-            return Math.abs(hash).toString(36);
-        }
-
-        // Check password
         function checkPassword() {
             if (state.isLocked) {
                 showStatus(`🔒 System locked (${state.lockdownTimer}s)`, true, true);
@@ -528,57 +509,55 @@
             const input = els.input.value.trim();
             if (!input) return;
 
-            if (hashPassword(input) === hashPassword(CONFIG.PASSWORD)) {
-                unlockSuccess();
+            const screenInfo = CONFIG.PASSWORDS[input];
+
+            if (screenInfo) {
+                unlockSuccess(screenInfo);
             } else {
                 failAttempt();
             }
         }
 
-        // Success
-        function unlockSuccess() {
+        function unlockSuccess(screenInfo) {
+            state.currentScreen = screenInfo.screen;
+            
             els.lockIcon.classList.add('unlock');
-            els.lockIcon.textContent = '✓';
+            els.lockIcon.textContent = '🔓';
             els.mainCard.classList.add('success');
             els.unlockBtn.disabled = true;
             els.input.disabled = true;
 
+            els.screenName.textContent = `🎯 Access Granted`;
+            els.successMsg.textContent = `Maximum Clearance Level`;
+
             setTimeout(() => {
                 els.successOverlay.classList.add('show');
                 setTimeout(() => {
-                    openScreen2();
+                    openScreen(screenInfo.screen);
                 }, 2500);
             }, 700);
         }
 
-        // Open Screen 2 in Kodular
-        function openScreen2() {
-            // For Kodular App Inventor
+        function openScreen(screenNumber) {
             if (window.AppInventor) {
-                window.AppInventor.setWebViewString('CIPHER_UNLOCK_SUCCESS');
+                window.AppInventor.setWebViewString(`SCREEN_${screenNumber}`);
             }
             
-            // Send message to parent
             if (window.parent) {
                 window.parent.postMessage({
-                    action: 'openScreen2',
-                    status: 'unlocked',
+                    action: 'openScreen',
+                    screen: screenNumber,
                     timestamp: Date.now()
                 }, '*');
             }
 
-            // Try to navigate
             try {
-                window.location.href = 'kodular://screen2';
-            } catch (e) {}
-
-            // Fallback alert
-            setTimeout(() => {
-                alert('✓ ACCESS GRANTED!\n\nOpening Screen 2...');
-            }, 500);
+                window.location.href = `screen${screenNumber}://open`;
+            } catch (e) {
+                console.log('Navigation failed:', e);
+            }
         }
 
-        // Failed attempt
         function failAttempt() {
             state.attempts++;
             els.input.classList.add('error');
@@ -597,7 +576,6 @@
             }
         }
 
-        // Lockdown
         function engageLockdown() {
             state.isLocked = true;
             state.lockdownTimer = CONFIG.LOCKDOWN_TIME;
@@ -617,7 +595,6 @@
             }, 1000);
         }
 
-        // Reset system
         function resetSystem() {
             state.isLocked = false;
             state.attempts = 0;
@@ -626,29 +603,20 @@
             els.statusText.textContent = '';
         }
 
-        // Show status
         function showStatus(msg, isError, isLocked) {
             els.statusText.textContent = msg;
             els.statusText.classList.toggle('error', isError);
             els.statusText.classList.toggle('locked', isLocked);
+            els.statusText.style.opacity = '1';
         }
 
-        // Events
-        els.input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !state.isLocked) checkPassword();
-        });
-
         els.unlockBtn.addEventListener('click', checkPassword);
-
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-                e.preventDefault();
-            }
+        els.input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
         });
 
-        // Initialize
         createStars();
+        els.input.focus();
     </script>
 </body>
-</html>
+</html>প
