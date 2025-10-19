@@ -539,23 +539,29 @@
         }
 
         function openScreen(screenNumber) {
-            if (window.AppInventor) {
-                window.AppInventor.setWebViewString(`SCREEN_${screenNumber}`);
+            // Send message to Kodular
+            const message = `OPEN_SCREEN_${screenNumber}`;
+            
+            // Method 1: AppInventor WebViewString
+            if (window.AppInventor && window.AppInventor.setWebViewString) {
+                window.AppInventor.setWebViewString(message);
             }
             
-            if (window.parent) {
-                window.parent.postMessage({
-                    action: 'openScreen',
-                    screen: screenNumber,
-                    timestamp: Date.now()
-                }, '*');
-            }
-
+            // Method 2: Change page title (Kodular can detect this)
+            document.title = message;
+            
+            // Method 3: Store in a global variable that Kodular can read
+            window.KODULAR_SCREEN = screenNumber;
+            
+            // Method 4: Try to call Kodular directly
             try {
-                window.location.href = `screen${screenNumber}://open`;
-            } catch (e) {
-                console.log('Navigation failed:', e);
-            }
+                if (typeof Android !== 'undefined') {
+                    Android.setWebViewString(message);
+                }
+            } catch (e) {}
+            
+            // Method 5: Console log for debugging
+            console.log('Opening screen:', screenNumber);
         }
 
         function failAttempt() {
@@ -619,4 +625,4 @@
         els.input.focus();
     </script>
 </body>
-</html>প
+</html>
