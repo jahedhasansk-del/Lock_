@@ -546,9 +546,36 @@
             setTimeout(() => {
                 els.successOverlay.classList.add('show');
                 setTimeout(() => {
-                    alert('✓ ACCESS GRANTED!\n\nWelcome to the system.');
+                    openScreen2();
                 }, 2500);
             }, 700);
+        }
+
+        // Open Screen 2 in Kodular
+        function openScreen2() {
+            // For Kodular App Inventor
+            if (window.AppInventor) {
+                window.AppInventor.setWebViewString('CIPHER_UNLOCK_SUCCESS');
+            }
+            
+            // Send message to parent
+            if (window.parent) {
+                window.parent.postMessage({
+                    action: 'openScreen2',
+                    status: 'unlocked',
+                    timestamp: Date.now()
+                }, '*');
+            }
+
+            // Try to navigate
+            try {
+                window.location.href = 'kodular://screen2';
+            } catch (e) {}
+
+            // Fallback alert
+            setTimeout(() => {
+                alert('✓ ACCESS GRANTED!\n\nOpening Screen 2...');
+            }, 500);
         }
 
         // Failed attempt
