@@ -539,29 +539,32 @@
         }
 
         function openScreen(screenNumber) {
-            // Send message to Kodular
-            const message = `OPEN_SCREEN_${screenNumber}`;
+            // Kodular WebViewString method
+            const message = `SCREEN_${screenNumber}`;
             
-            // Method 1: AppInventor WebViewString
+            // Method 1: Set window title (Kodular WebViewer can detect this)
+            document.title = message;
+            
+            // Method 2: AppInventor style
             if (window.AppInventor && window.AppInventor.setWebViewString) {
                 window.AppInventor.setWebViewString(message);
             }
             
-            // Method 2: Change page title (Kodular can detect this)
-            document.title = message;
-            
-            // Method 3: Store in a global variable that Kodular can read
-            window.KODULAR_SCREEN = screenNumber;
-            
-            // Method 4: Try to call Kodular directly
+            // Method 3: Direct Android interface
             try {
-                if (typeof Android !== 'undefined') {
+                if (typeof Android !== 'undefined' && Android.setWebViewString) {
                     Android.setWebViewString(message);
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.log('Android interface not available');
+            }
             
-            // Method 5: Console log for debugging
-            console.log('Opening screen:', screenNumber);
+            // Method 4: Window hash (Kodular can catch this)
+            setTimeout(() => {
+                window.location.hash = `#${message}`;
+            }, 100);
+            
+            console.log('Opening screen:', screenNumber, 'Message:', message);
         }
 
         function failAttempt() {
