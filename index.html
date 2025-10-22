@@ -1,1 +1,631 @@
-Original file line numberDiff line numberDiff line change@@ -1 +1,627 @@Comment view<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Loading...</title><style>*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none}body{font-family:'Courier New',monospace;background:linear-gradient(135deg,#1a1a2e 0%,#0f0f1e 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;touch-action:none}html{overflow:hidden;position:fixed;width:100%;height:100%}.grid-bg{position:absolute;inset:0;background-image:linear-gradient(#0ff 1px,transparent 1px),linear-gradient(90deg,#0ff 1px,transparent 1px);background-size:50px 50px;opacity:.1;pointer-events:none}.matrix{position:absolute;color:#0f0;font-size:12px;opacity:.15;pointer-events:none}.top-bar{position:absolute;top:0;left:0;right:0;background:rgba(0,0,0,.9);border-bottom:2px solid #06b6d4;padding:15px;z-index:100;display:flex;justify-content:space-between;align-items:center}.status{color:#06b6d4;font-weight:bold;font-size:14px}.status-indicator{color:#22c55e;font-size:12px}.status-indicator.denied{color:#ef4444}.status-indicator.locked{color:#f97316}.cctv-panel,.log-panel{position:absolute;top:80px;background:rgba(0,0,0,.9);border:2px solid;border-radius:10px;padding:15px;z-index:100;box-shadow:0 0 30px;pointer-events:none}.cctv-panel{right:20px;border-color:#ef4444;box-shadow:0 0 30px rgba(239,68,68,.5)}.log-panel{left:20px;border-color:#f97316;box-shadow:0 0 30px rgba(249,115,22,.5)}.cctv-text,.log-text{font-size:10px;margin-bottom:5px}.cctv-status{color:#ef4444;font-weight:bold;animation:blink 1s infinite}@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:.3}}.container{position:relative;z-index:10;width:90%;max-width:400px}.door{background:linear-gradient(180deg,#374151 0%,#111827 100%);border:4px solid #4b5563;border-radius:15px;padding:40px;box-shadow:0 25px 70px rgba(0,0,0,.9);transition:border-color .3s,box-shadow .3s}.door.unlocked{border-color:#22c55e;box-shadow:0 0 70px rgba(34,197,94,.6)}.door.denied{border-color:#ef4444;box-shadow:0 0 70px rgba(239,68,68,.6)}.lock-icon{text-align:center;font-size:80px;margin-bottom:30px}.lock-icon.locked{color:#06b6d4;filter:drop-shadow(0 0 25px #06b6d4)}.lock-icon.unlocked{color:#22c55e;filter:drop-shadow(0 0 25px #22c55e);animation:pulse 1s infinite}.lock-icon.denied{color:#ef4444;filter:drop-shadow(0 0 25px #ef4444)}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}h1{color:#06b6d4;text-align:center;margin-bottom:10px;font-size:24px}.subtitle{color:#9ca3af;text-align:center;margin-bottom:30px;font-size:12px}.input-group{position:relative;margin-bottom:25px}input{width:100%;padding:15px;background:rgba(17,24,39,.8);border:2px solid #374151;border-radius:8px;color:#fff;font-family:'Courier New',monospace;font-size:16px;letter-spacing:2px;transition:all .3s}input:focus{outline:none;border-color:#06b6d4;box-shadow:0 0 20px rgba(6,182,212,.3)}input.error{border-color:#ef4444}button{width:100%;padding:15px;background:linear-gradient(135deg,#06b6d4 0%,#0891b2 100%);border:none;border-radius:8px;color:#fff;font-family:'Courier New',monospace;font-size:16px;font-weight:bold;cursor:pointer;transition:all .3s;box-shadow:0 5px 20px rgba(6,182,212,.3)}button:active{transform:scale(.98)}button:disabled{background:#374151;cursor:not-allowed;box-shadow:none;opacity:.6}.attempts{text-align:center;margin-top:20px;color:#f97316;font-size:14px}.attempts.danger{color:#ef4444;font-weight:bold;animation:blink 1s infinite}.warning-overlay{position:fixed;inset:0;background:repeating-linear-gradient(45deg,rgba(153,27,27,.4),rgba(153,27,27,.4) 10px,rgba(185,28,28,.4) 10px,rgba(185,28,28,.4) 20px);display:none;align-items:center;justify-content:center;z-index:1000;animation:flash .5s infinite}@keyframes flash{0%,100%{opacity:.8}50%{opacity:1}}.warning-overlay.show{display:flex}.warning-box{background:#000;border:4px solid #ef4444;border-radius:15px;padding:40px;text-align:center;max-width:400px;box-shadow:0 0 60px rgba(220,38,38,.9)}.warning-icon{font-size:100px;margin-bottom:20px}.warning-title{color:#ef4444;font-size:32px;margin-bottom:15px;text-shadow:0 0 30px rgba(239,68,68,.9)}.warning-text{color:#fca5a5;font-size:18px;margin-bottom:20px}.success-screen{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;z-index:2000}.success-screen.show{display:flex}.success-content{text-align:center}.success-icon{font-size:120px;color:#22c55e;filter:drop-shadow(0 0 30px #22c55e);animation:pulse 1s infinite}.success-title{font-size:48px;color:#22c55e;margin:20px 0;animation:pulse 1s infinite}.success-text{color:#4ade80;font-size:16px;margin:10px 0}.loading-bar{width:300px;height:8px;background:#1f2937;border-radius:10px;margin:30px auto;overflow:hidden}.loading-fill{height:100%;background:#22c55e;width:0%;animation:loadProgress 1.5s ease-in-out forwards}@keyframes loadProgress{to{width:100%}}</style></head><body><div class="grid-bg"></div><div class="top-bar"><div class="status">🔒 SECURITY SYSTEM v2.5.1</div><div class="status-indicator"id="statusIndicator">● ACTIVE</div></div><div class="cctv-panel"><div class="cctv-text"style="color:#9ca3af">CCTV-ALPHA-01</div><div class="cctv-status">● SCANNING...</div><div class="cctv-text"style="color:#6b7280">LIVE FEED</div></div><div class="log-panel"><div class="log-text"style="color:#f97316;font-weight:bold">⚠ SECURITY LOG</div><div class="log-text"style="color:#fbbf24">FAILED: <span id="attemptCount"style="color:#ef4444;font-weight:bold;font-size:16px">0</span><span style="color:#6b7280">/5</span></div><div id="highAlert"style="display:none;color:#ef4444;font-size:10px;font-weight:bold;background:rgba(153,27,27,.5);padding:5px;border-radius:5px;margin-top:5px">🚨 HIGH ALERT</div><div id="lockdown"style="display:none;color:#ef4444;font-size:10px;font-weight:bold;background:rgba(153,27,27,.5);padding:5px;border-radius:5px;margin-top:5px">🔒 LOCKDOWN: <span id="lockTimer">60</span>s</div></div><div class="container"><div class="door"id="door"><div class="lock-icon locked"id="lockIcon">🔒</div><h1>SECURITY ACCESS</h1><p class="subtitle">Enter authorization key</p><div class="input-group"><input type="password"id="keyInput"placeholder="••••••••••"maxlength="20"autocomplete="off"autocorrect="off"autocapitalize="off"spellcheck="false"></div><button id="submitBtn">🔓 UNLOCK</button><div class="attempts"id="attempts"></div></div></div><div class="warning-overlay"id="warningOverlay"><div class="warning-box"><div class="warning-icon">⚠️</div><div class="warning-title"id="warningTitle">ACCESS DENIED</div><div class="warning-text"id="warningText">INVALID SECURITY KEY</div><div style="color:#f97316;font-size:14px;margin-top:20px">UNAUTHORIZED ACCESS ATTEMPT</div><div style="color:#ef4444;font-size:16px;font-weight:bold;background:rgba(0,0,0,.7);padding:15px;border-radius:8px;border:2px solid #ef4444;margin-top:20px">🚨 INTRUSION ALERT 🚨</div></div></div><div class="success-screen"id="successScreen"><div class="success-content"><div class="success-icon">🛡️</div><div class="success-title">ACCESS GRANTED</div><div class="success-text">✓ SECURITY CLEARANCE: MAXIMUM</div><div class="success-text"style="color:#86efac">Initiating secure connection...</div><div class="loading-bar"><div class="loading-fill"></div></div><div class="success-text"style="margin-top:20px">▓▓▓▓▓▓ OPENING SCREEN 2 ▓▓▓▓▓▓</div></div></div><script>for(let i=0;i<15;i++){const m=document.createElement('div');m.className='matrix';m.textContent=Math.random().toString(2).substring(2,10);m.style.position='absolute';m.style.left=Math.random()*100+'%';m.style.top=Math.random()*100+'%';document.body.appendChild(m)}const _0x1f2e={_0x3d4a:[77,84,69,121,77,106,77,61],_0x5b8c:5,_0x7a9d:60,_0x2c4e:0,_0x8f3a:!1,_0x9b2d:0};const _0x4c7e=(()=>{const a=window.navigator,b=window.screen,c=[a.userAgent,a.language,b.colorDepth,b.width+'x'+b.height,new Date().getTimezoneOffset(),!!window.sessionStorage,!!window.localStorage].join('###');let d=0;for(let e=0;e<c.length;e++){const f=c.charCodeAt(e);d=((d<<5)-d)+f;d=d&d}return Math.abs(d).toString(36).toUpperCase()})();const _0x5d9f=a=>{try{let b='';for(let c=0;c<a.length;c++)b+=String.fromCharCode(a[c]);return atob(b)}catch(d){return null}};const _0x8e3c=a=>{let b=0;for(let c=0;c<a.length;c++){const d=a.charCodeAt(c);b=((b<<5)-b)+d;b=b&b}return b};const _0x3f7b=(a,b)=>{let c='';for(let d=0;d<a.length;d++)c+=String.fromCharCode(a.charCodeAt(d)^b.charCodeAt(d%b.length));return btoa(c)};const _0x9c4f={_0xa1:document.getElementById('keyInput'),_0xb2:document.getElementById('submitBtn'),_0xc3:document.getElementById('door'),_0xd4:document.getElementById('lockIcon'),_0xe5:document.getElementById('warningOverlay'),_0xf6:document.getElementById('successScreen'),_0xa7:document.getElementById('attemptCount'),_0xb8:document.getElementById('statusIndicator'),_0xc9:document.getElementById('highAlert'),_0xda:document.getElementById('lockdown'),_0xeb:document.getElementById('lockTimer')};const _0x6a8d=()=>{if(_0x1f2e._0x8f3a){_0x4f9c('🔒 SYSTEM LOCKED',`LOCKDOWN: ${_0x1f2e._0x9b2d} SECONDS`);return}const a=_0x9c4f._0xa1.value.trim();if(a==='')return;const b=_0x5d9f(_0x1f2e._0x3d4a),c=_0x8e3c(a+'X9#mK$pL2@qR'),d=_0x8e3c(b+'X9#mK$pL2@qR');if(c===d)_0x2e9f();else{_0x1f2e._0x2c4e++;_0x8b3d();_0x5d7a();_0x9c4f._0xa1.value='';if(_0x1f2e._0x2c4e>=_0x1f2e._0x5b8c)_0x3c8f()}};const _0x2e9f=()=>{_0x9c4f._0xc3.classList.add('unlocked');_0x9c4f._0xd4.textContent='✓';_0x9c4f._0xd4.classList.remove('locked','denied');_0x9c4f._0xd4.classList.add('unlocked');_0x9c4f._0xb8.textContent='● ACCESS GRANTED';_0x9c4f._0xb8.className='status-indicator';setTimeout(()=>{_0x9c4f._0xf6.classList.add('show');setTimeout(()=>{_0x7d4e()},1500)},800)};const _0x5d7a=()=>{_0x9c4f._0xc3.classList.add('denied');_0x9c4f._0xd4.classList.add('denied');_0x9c4f._0xa1.classList.add('error');_0x9c4f._0xb8.textContent='● ACCESS DENIED';_0x9c4f._0xb8.classList.add('denied');_0x4f9c('⚠️ ACCESS DENIED','INVALID SECURITY KEY');setTimeout(()=>{_0x9c4f._0xc3.classList.remove('denied');_0x9c4f._0xd4.classList.remove('denied');_0x9c4f._0xa1.classList.remove('error');_0x9c4f._0xe5.classList.remove('show');_0x9c4f._0xb8.textContent='● ACTIVE';_0x9c4f._0xb8.className='status-indicator'},2500)};const _0x4f9c=(a,b)=>{document.getElementById('warningTitle').textContent=a;document.getElementById('warningText').textContent=b;_0x9c4f._0xe5.classList.add('show')};const _0x8b3d=()=>{_0x9c4f._0xa7.textContent=_0x1f2e._0x2c4e;if(_0x1f2e._0x2c4e>=3&&_0x1f2e._0x2c4e<_0x1f2e._0x5b8c){_0x9c4f._0xc9.style.display='block';_0x9c4f._0xa7.parentElement.classList.add('danger')}};const _0x3c8f=()=>{_0x1f2e._0x8f3a=!0;_0x1f2e._0x9b2d=_0x1f2e._0x7a9d;_0x9c4f._0xb2.disabled=!0;_0x9c4f._0xa1.disabled=!0;_0x9c4f._0xb8.textContent='● LOCKED';_0x9c4f._0xb8.classList.add('locked');_0x9c4f._0xda.style.display='block';_0x9c4f._0xc9.style.display='none';const a=setInterval(()=>{_0x1f2e._0x9b2d--;_0x9c4f._0xeb.textContent=_0x1f2e._0x9b2d;if(_0x1f2e._0x9b2d<=0){clearInterval(a);_0x6f3d()}},1e3);_0x4f9c('🔒 SYSTEM LOCKED',`LOCKDOWN: ${_0x1f2e._0x9b2d} SECONDS`)};const _0x6f3d=()=>{_0x1f2e._0x8f3a=!1;_0x1f2e._0x2c4e=0;_0x9c4f._0xb2.disabled=!1;_0x9c4f._0xa1.disabled=!1;_0x9c4f._0xb8.textContent='● ACTIVE';_0x9c4f._0xb8.className='status-indicator';_0x9c4f._0xda.style.display='none';_0x9c4f._0xa7.textContent='0';_0x9c4f._0xa7.parentElement.classList.remove('danger');_0x9c4f._0xe5.classList.remove('show')};const _0x7d4e=()=>{const a=_0x3f7b(`UNLOCK_${Date.now()}_${_0x4c7e}`,'X9#mK$pL2@qR');if(window.AppInventor)window.AppInventor.setWebViewString(a);if(window.parent)window.parent.postMessage({action:'openScreen2',status:'unlocked',token:a,fingerprint:_0x4c7e,timestamp:Date.now()},'*');try{window.location.href='kodular://screen2'}catch(b){}setTimeout(()=>{alert('✓ ACCESS GRANTED! Opening Screen 2...')},100)};_0x9c4f._0xa1.addEventListener('keypress',function(a){if(a.key==='Enter'&&!_0x1f2e._0x8f3a)_0x6a8d()});_0x9c4f._0xb2.addEventListener('click',_0x6a8d);_0x9c4f._0xa1.addEventListener('paste',function(a){a.preventDefault();_0x1f2e._0x2c4e++;_0x8b3d()});_0x9c4f._0xa1.addEventListener('copy',function(a){a.preventDefault()});_0x9c4f._0xa1.addEventListener('cut',function(a){a.preventDefault()});document.addEventListener('contextmenu',function(a){a.preventDefault();_0x1f2e._0x2c4e++;_0x8b3d();return!1});document.addEventListener('keydown',function(a){if(a.keyCode===123||a.ctrlKey&&a.shiftKey&&(a.keyCode===73||a.keyCode===74)||a.ctrlKey&&a.keyCode===85){a.preventDefault();_0x1f2e._0x2c4e++;_0x8b3d();return!1}});const _0x2f9d=()=>{const a=160;if(window.outerWidth-window.innerWidth>a||window.outerHeight-window.innerHeight>a)_0x3c8f()};setInterval(_0x2f9d,1e3);setInterval(()=>{console.clear()},3e3);const _0x5c8e=()=>{};console.log=_0x5c8e;console.warn=_0x5c8e;console.error=_0x5c8e;console.info=_0x5c8e;console.debug=_0x5c8e;console.trace=_0x5c8e;Object.freeze(_0x1f2e);Object.seal(_0x1f2e);const _0x3d7f=new MutationObserver(function(a){for(let b of a)if(b.type==='childList'&&b.addedNodes.length>0)for(let c of b.addedNodes)if(c.tagName==='SCRIPT'||c.tagName==='IFRAME')_0x3c8f()});_0x3d7f.observe(document.body,{childList:!0,subtree:!0});let _0x4f9e=0,_0x8c2d=Date.now();document.addEventListener('keydown',function(){_0x4f9e++;const a=Date.now();if(a-_0x8c2d<50&&_0x4f9e>5)_0x3c8f();_0x8c2d=a});let _0x2b9f=0;window.addEventListener('blur',function(){_0x2b9f++;if(_0x2b9f>5){_0x1f2e._0x2c4e++;_0x8b3d()}});document.addEventListener('visibilitychange',function(){if(document.hidden)_0x1f2e._0x2c4e++});document.addEventListener('touchmove',function(a){a.preventDefault()},{passive:!1});document.addEventListener('gesturestart',function(a){a.preventDefault()});document.addEventListener('gesturechange',function(a){a.preventDefault()});document.addEventListener('gestureend',function(a){a.preventDefault()});</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIPHER Security System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        .glow-1, .glow-2 {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            z-index: 1;
+        }
+
+        .glow-1 {
+            width: 400px;
+            height: 400px;
+            background: #00ff88;
+            top: -100px;
+            left: -100px;
+            animation: moveGlow1 15s ease-in-out infinite;
+        }
+
+        .glow-2 {
+            width: 350px;
+            height: 350px;
+            background: #ff0055;
+            bottom: -100px;
+            right: -100px;
+            animation: moveGlow2 18s ease-in-out infinite;
+        }
+
+        @keyframes moveGlow1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+        }
+
+        @keyframes moveGlow2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-50px, -50px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+
+        .main-card {
+            background: rgba(10, 10, 20, 0.7);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #00ff88, #00ffff) 1;
+            border-radius: 20px;
+            padding: 60px 40px;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 0 60px rgba(0, 255, 136, 0.2),
+                inset 0 0 30px rgba(0, 255, 136, 0.05);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, rgba(0, 255, 136, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .main-card.error {
+            border-image: linear-gradient(135deg, #ff0055, #ff6600) 1;
+            box-shadow: 
+                0 0 60px rgba(255, 0, 85, 0.3),
+                inset 0 0 30px rgba(255, 0, 85, 0.05);
+            animation: cardShake 0.5s;
+        }
+
+        .main-card.success {
+            border-image: linear-gradient(135deg, #00ff88, #00ff00) 1;
+            box-shadow: 
+                0 0 80px rgba(0, 255, 136, 0.4),
+                inset 0 0 30px rgba(0, 255, 136, 0.1);
+        }
+
+        @keyframes cardShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .lock-animation {
+            font-size: 70px;
+            margin-bottom: 25px;
+            display: inline-block;
+            animation: lockFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes lockFloat {
+            0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.3)); }
+            50% { transform: translateY(-15px); filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.6)); }
+        }
+
+        .lock-animation.unlock {
+            animation: lockUnlock 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes lockUnlock {
+            0% { transform: rotateZ(0) scale(1); }
+            50% { transform: rotateZ(-25deg) scale(1.15); filter: drop-shadow(0 0 30px rgba(0, 255, 0, 0.8)); }
+            100% { transform: rotateZ(0) scale(1); filter: drop-shadow(0 0 40px rgba(0, 255, 0, 0.5)); }
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #00ffff;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #00ff88;
+            font-weight: 500;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 12px;
+            color: #00ff88;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 2px solid rgba(0, 255, 136, 0.4);
+            border-radius: 12px;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            letter-spacing: 3px;
+            transition: all 0.3s;
+            outline: none;
+            box-shadow: inset 0 0 15px rgba(0, 255, 136, 0.05);
+        }
+
+        input[type="password"]:focus {
+            border-color: rgba(0, 255, 136, 0.8);
+            background: rgba(0, 255, 136, 0.08);
+            box-shadow: 
+                0 0 30px rgba(0, 255, 136, 0.2),
+                inset 0 0 15px rgba(0, 255, 136, 0.1);
+        }
+
+        input[type="password"].error {
+            border-color: rgba(255, 0, 85, 0.8);
+            background: rgba(255, 0, 85, 0.08);
+            color: #ff0055;
+            animation: inputShake 0.4s;
+        }
+
+        @keyframes inputShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .unlock-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #00ff88 0%, #00ffff 100%);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .unlock-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .unlock-btn:hover:not(:disabled)::before {
+            transform: translateX(100%);
+        }
+
+        .unlock-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.4);
+        }
+
+        .unlock-btn:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .unlock-btn:disabled {
+            background: linear-gradient(135deg, #444 0%, #333 100%);
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .status-area {
+            margin-top: 25px;
+            text-align: center;
+            min-height: 25px;
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: #00ff88;
+            opacity: 0;
+            animation: fadeInMsg 0.4s forwards;
+        }
+
+        .status-text.error {
+            color: #ff0055;
+            font-weight: 600;
+        }
+
+        .status-text.locked {
+            animation: pulse-locked 0.6s infinite;
+        }
+
+        @keyframes fadeInMsg {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse-locked {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(15px);
+        }
+
+        .success-overlay.show {
+            display: flex;
+            animation: overlayFadeIn 0.5s;
+        }
+
+        @keyframes overlayFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .success-content {
+            text-align: center;
+            animation: successPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes successPop {
+            0% { transform: scale(0.5) rotateZ(-10deg); opacity: 0; }
+            100% { transform: scale(1) rotateZ(0); opacity: 1; }
+        }
+
+        .success-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: successBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes successBounce {
+            0% { transform: scale(0) rotateZ(0); }
+            100% { transform: scale(1) rotateZ(360deg); }
+        }
+
+        .success-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #00ff88;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        }
+
+        .success-subtitle {
+            font-size: 15px;
+            color: #00ffff;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .progress-container {
+            width: 250px;
+            height: 6px;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 3px;
+            margin: 0 auto 30px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ffff, #00ff88);
+            width: 0%;
+            animation: progressFill 2.5s ease-in-out forwards;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+        }
+
+        @keyframes progressFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        .success-text {
+            color: #00ff88;
+            font-size: 14px;
+            animation: slideInUp 0.5s 0.2s both;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .main-card {
+                padding: 40px 25px;
+            }
+
+            .title {
+                font-size: 26px;
+            }
+
+            .lock-animation {
+                font-size: 55px;
+            }
+
+            input[type="password"] {
+                font-size: 16px;
+                letter-spacing: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="starsContainer"></div>
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+
+    <div class="container">
+        <div class="main-card" id="mainCard">
+            <div class="header-section">
+                <div class="lock-animation" id="lockIcon">🔐</div>
+                <h1 class="title">CIPHER</h1>
+                <p class="subtitle">Secure Access Gateway</p>
+            </div>
+
+            <div class="input-section">
+                <label class="input-label">Enter Passkey</label>
+                <input type="password" id="keyInput" placeholder="••••••••••" maxlength="20" autocomplete="off">
+            </div>
+
+            <button class="unlock-btn" id="unlockBtn">▶ Unlock</button>
+
+            <div class="status-area">
+                <div class="status-text" id="statusText"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-content">
+            <div class="success-icon">✓</div>
+            <div class="success-title">ACCESS GRANTED</div>
+            <div class="success-subtitle" id="screenName">Redirecting...</div>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="success-text" id="successMsg">Initializing secure connection...</div>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            PASSWORDS: {
+                '202510': { screen: 2, name: 'Screen 2', icon: '📱' },
+                '202530': { screen: 3, name: 'Screen 3', icon: '🖥️' }
+            },
+            MAX_ATTEMPTS: 5,
+            LOCKDOWN_TIME: 30
+        };
+
+        const state = {
+            attempts: 0,
+            isLocked: false,
+            lockdownTimer: 0,
+            currentScreen: null
+        };
+
+        const els = {
+            input: document.getElementById('keyInput'),
+            unlockBtn: document.getElementById('unlockBtn'),
+            mainCard: document.getElementById('mainCard'),
+            lockIcon: document.getElementById('lockIcon'),
+            statusText: document.getElementById('statusText'),
+            successOverlay: document.getElementById('successOverlay'),
+            screenName: document.getElementById('screenName'),
+            successMsg: document.getElementById('successMsg'),
+            starsContainer: document.getElementById('starsContainer')
+        };
+
+        function createStars() {
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                els.starsContainer.appendChild(star);
+            }
+        }
+
+        function checkPassword() {
+            if (state.isLocked) {
+                showStatus(`🔒 System locked (${state.lockdownTimer}s)`, true, true);
+                return;
+            }
+
+            const input = els.input.value.trim();
+            if (!input) return;
+
+            const screenInfo = CONFIG.PASSWORDS[input];
+
+            if (screenInfo) {
+                unlockSuccess(screenInfo);
+            } else {
+                failAttempt();
+            }
+        }
+
+        function unlockSuccess(screenInfo) {
+            state.currentScreen = screenInfo.screen;
+            
+            els.lockIcon.classList.add('unlock');
+            els.lockIcon.textContent = '🔓';
+            els.mainCard.classList.add('success');
+            els.unlockBtn.disabled = true;
+            els.input.disabled = true;
+
+            els.screenName.textContent = `🎯 Access Granted`;
+            els.successMsg.textContent = `Maximum Clearance Level`;
+
+            setTimeout(() => {
+                els.successOverlay.classList.add('show');
+                setTimeout(() => {
+                    openScreen(screenInfo.screen);
+                }, 2500);
+            }, 700);
+        }
+
+        function openScreen(screenNumber) {
+            // Kodular WebViewString method
+            const message = `SCREEN_${screenNumber}`;
+            
+            // Method 1: Set window title (Kodular WebViewer can detect this)
+            document.title = message;
+            
+            // Method 2: AppInventor style
+            if (window.AppInventor && window.AppInventor.setWebViewString) {
+                window.AppInventor.setWebViewString(message);
+            }
+            
+            // Method 3: Direct Android interface
+            try {
+                if (typeof Android !== 'undefined' && Android.setWebViewString) {
+                    Android.setWebViewString(message);
+                }
+            } catch (e) {
+                console.log('Android interface not available');
+            }
+            
+            // Method 4: Window hash (Kodular can catch this)
+            setTimeout(() => {
+                window.location.hash = `#${message}`;
+            }, 100);
+            
+            console.log('Opening screen:', screenNumber, 'Message:', message);
+        }
+
+        function failAttempt() {
+            state.attempts++;
+            els.input.classList.add('error');
+            els.mainCard.classList.add('error');
+            els.input.value = '';
+
+            showStatus(`❌ Access Denied (${state.attempts}/${CONFIG.MAX_ATTEMPTS})`, true);
+
+            setTimeout(() => {
+                els.input.classList.remove('error');
+                els.mainCard.classList.remove('error');
+            }, 500);
+
+            if (state.attempts >= CONFIG.MAX_ATTEMPTS) {
+                engageLockdown();
+            }
+        }
+
+        function engageLockdown() {
+            state.isLocked = true;
+            state.lockdownTimer = CONFIG.LOCKDOWN_TIME;
+            els.unlockBtn.disabled = true;
+            els.input.disabled = true;
+
+            showStatus(`🚨 System locked for ${CONFIG.LOCKDOWN_TIME}s`, true, true);
+
+            const timer = setInterval(() => {
+                state.lockdownTimer--;
+                if (state.lockdownTimer > 0) {
+                    showStatus(`🚨 System locked for ${state.lockdownTimer}s`, true, true);
+                } else {
+                    clearInterval(timer);
+                    resetSystem();
+                }
+            }, 1000);
+        }
+
+        function resetSystem() {
+            state.isLocked = false;
+            state.attempts = 0;
+            els.unlockBtn.disabled = false;
+            els.input.disabled = false;
+            els.statusText.textContent = '';
+        }
+
+        function showStatus(msg, isError, isLocked) {
+            els.statusText.textContent = msg;
+            els.statusText.classList.toggle('error', isError);
+            els.statusText.classList.toggle('locked', isLocked);
+            els.statusText.style.opacity = '1';
+        }
+
+        els.unlockBtn.addEventListener('click', checkPassword);
+        els.input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        createStars();
+        els.input.focus();
+    </script>
+</body>
+</html>
